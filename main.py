@@ -29,15 +29,38 @@ running = True
 def update_files():
     files.set_dir(path)
 
+def clampSelection():
+    files.selected=max(0,min(len(files.files)-1, files.selected)) # min: 0  max: # of files - 1
+
+def updateScroll():
+    # center the view around the selected item, but clamp it to not go out of bounds
+    files.scroll = int(max(
+        0,
+        min(
+            len(files.files)-files.height,
+            files.selected-files.height/2
+        )
+    ))
+
 def view():
     s = "\x1b[2J\x1b[H"
-    s += f"{path}\n\n"
+    s += f"==== {path} ====\n"
+    s += f"{len(files.get_files())} files, "
+    s += f"{len(files.get_folders())} folders, "
+    s += f"{len(files.get_links())} links"
+    s += "\n\n"
+    
     s += files.view()
+
+    s+=f"\n\n{files.selected} {files.scroll} {files.height}"
 
     return s
 
 def handle_input(char):
-    global running
+    global running,path
+    f=open('char','a')
+    f.write(char)
+    f.close()
     if char=="\x03": #Ctrl-C
         running=False
     elif char=="\x1b":
@@ -47,15 +70,29 @@ def handle_input(char):
             files.selected-=1
         elif char2=="B":
             files.selected+=1
+    elif char=="\r":
+        file = files.files[files.selected]
+        if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
+            path = os.path.abspath( os.path.join( path, file.get_name() ) )
+            update_files()
+            if file.get_name() == "..": # if going up, then select the previous folder
+                index = os.listdir(path).index( os.path.basename(os.path.dirname(file.path)) )
+                files.selected = index
     elif char=="q":
         running=False
     else:
-        print(char)
-        time.sleep(1)
+        # print(char)
+        # time.sleep(1)
+        pass
 
 if __name__ == "__main__":
+    print(view())
     while running:
-        print(view())
         char = getchar()
         handle_input(char)
+        clampSelection()
+        updateScroll()
+
+        # print("Loading...")
+        print(view())
         # print(f"Cool '{char}'")
