@@ -52,7 +52,7 @@ def view():
     
     s += files.view()
 
-    s+=f"\n\n{files.selected} {files.scroll} {files.height}"
+    # s+=f"\n\n{files.selected} {files.scroll} {files.height}"
 
     return s
 
