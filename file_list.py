@@ -159,12 +159,12 @@ class FileList:
             s += "  "
             s += info.ljust(column_sizes["info"])
 
-            s = s.rstrip()
+            # s = s.rstrip()
+
+            s += "\n"
 
             if i == self.selected:
                 s += colors.invert.off
-            
-            s += "\n"
 
             i += 1
         
