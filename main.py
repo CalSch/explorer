@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(
     epilog='Schpaloingus!')
 
 parser.add_argument('dir', nargs='?', default=os.getcwd())
+parser.add_argument('-o', '--once', action='store_true')
 
 args = parser.parse_args()
 
@@ -25,6 +26,9 @@ path = args.dir
 files = file_list.FileList(path)
 
 running = True
+
+if args.once:
+    running = False
 
 def update_files():
     files.set_dir(path)
