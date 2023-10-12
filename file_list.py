@@ -21,9 +21,11 @@ file_flag_to_color = {
 class File:
     def __init__(self,path:str):
         self.path=path
+        self.info=""
         self.update()
     
     def update(self):
+        self.info=self.get_info()
         self.stat=os.stat(self.path)
     
     def get_permissions(self):
@@ -49,11 +51,14 @@ class File:
         except:
             print(self.path)
             print(self.get_permissions())
+    
+    def get_name(self):
+        return os.path.basename(self.path)
 
 class FileList:
     def __init__(self,dir:str):
         self.dir=dir
-        self.files=[]
+        self.files: list[File]=[]
         self.set_dir(dir)
         self.selected = 0
         self.height=15
@@ -61,9 +66,14 @@ class FileList:
     
     def set_dir(self,dir:str):
         self.dir=dir
-        self.files=os.listdir(dir)
-        self.files.insert(0,"..")
-        self.files.insert(0,".")
+        file_names=os.listdir(dir)
+        file_names.insert(0,"..")
+        file_names.insert(0,".")
+
+        self.files=[]
+
+        for fname in file_names:
+            self.files.append(File(os.path.join(self.dir, fname)))
     
     def view(self) -> str:
         s = ""
@@ -74,46 +84,39 @@ class FileList:
             "info": 0,
         }
         # get table sizes
-        for fname in self.files:
-            # get absolute file path
-            path = os.path.join(self.dir,fname)
-            file = File(path)
-
+        for file in self.files:
             # get file stuff
             perms=file.get_permissions()
             size=file.get_size()
-            info=file.get_info()
+            info=file.info
 
             #update table sizes
             if len(perms) > column_sizes["perms"]:
                 column_sizes["perms"] = len(perms)
             if len(size) > column_sizes["size"]:
                 column_sizes["size"] = len(size)
-            if len(fname) > column_sizes["name"]:
-                column_sizes["name"] = len(fname)
+            if len(file.get_name()) > column_sizes["name"]:
+                column_sizes["name"] = len(file.get_name())
             if len(info) > column_sizes["info"]:
                 column_sizes["info"] = len(info)
         
         i = 0
         # display file table
-        for fname in self.files:
+        for file in self.files:
             if i<self.scroll or i>=(self.scroll+self.height):
                 continue
-            # get absolute file path
-            path = os.path.join(self.dir,fname)
-            file = File(path)
 
             # get file stuff
             perms=file.get_permissions()
             size=file.get_size()
-            info=file.get_info()
+            info=file.info
 
             if i == self.selected:
                 s += colors.invert.on
             s += perms.ljust(column_sizes["perms"])
             s += "  "
             s += file.get_color()
-            s += fname.ljust(column_sizes["name"])
+            s += file.get_name().ljust(column_sizes["name"])
             s += colors.fg.default
             s += "  "
             s += size.rjust(column_sizes["size"])
