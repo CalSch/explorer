@@ -47,7 +47,7 @@ class File:
             return ""
         info = subprocess.check_output(["file","-e","elf","-b",self.path])
         text = info.decode("utf-8")
-        text = text.strip(" \t\n\r")
+        text = text.strip("\n")
         return text
     
     def get_color(self) -> str:
