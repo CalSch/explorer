@@ -1,5 +1,6 @@
-import os,stat,subprocess
+import os,stat,subprocess,string_util
 import colors
+import table
 
 def format_size(num, suffix="B"):
     for unit in ("", "K", "M", "G", "T", "P", "E", "Z"):
@@ -22,6 +23,7 @@ class File:
     def __init__(self,path:str):
         self.path=path
         self.info=""
+        self.mime=""
         self.broken=False
         self.update()
     
@@ -29,6 +31,7 @@ class File:
         if not os.path.exists(self.path):
             self.broken=True
         self.info=self.get_info()
+        self.mime=self.get_mime()
         self.stat=os.lstat(self.path) # use lstat to follow symlinks
     
     def get_permissions(self) -> str:
@@ -45,7 +48,17 @@ class File:
     def get_info(self) -> str:
         if self.broken:
             return ""
+        if os.path.isdir(self.path):
+            return "directory"
         info = subprocess.check_output(["file","-e","elf","-b",self.path])
+        text = info.decode("utf-8")
+        text = text.strip("\n")
+        return text
+
+    def get_mime(self) -> str:
+        if self.broken:
+            return ""
+        info = subprocess.check_output(["file","-i","-b",self.path])
         text = info.decode("utf-8")
         text = text.strip("\n")
         return text
@@ -70,14 +83,44 @@ class File:
     def get_name(self) -> str:
         return os.path.basename(self.path)
 
+    def get_as_row_data(self) -> dict[str,str]:
+        return {
+            "path": self.path,
+            "name": self.get_color() + self.get_name() + colors.fg.default,
+            "perms": self.get_permissions(),
+            "size": self.get_size(),
+            "info": self.info,
+            "mime": self.mime,
+        }
+
 class FileList:
     def __init__(self,dir:str):
-        self.dir=dir
+        self.dir = dir
         self.files: list[File]=[]
-        self.set_dir(dir)
         self.selected = 0
-        self.height=30
-        self.scroll=0
+        self.scroll = 0
+        self.width = 120
+
+        self.table = table.Table(
+            title = self.dir,
+            height = 15,
+            width = self.width,
+            columns = ["path","name","size","perms","info","mime"],
+            column_order = ["perms","name","size","info"],
+            column_justifies = {
+                "path": string_util.TextJustify.Left,
+                "name": string_util.TextJustify.Left,
+                "size": string_util.TextJustify.Right,
+                "perms": string_util.TextJustify.Left,
+                "info": string_util.TextJustify.Left,
+                "mime": string_util.TextJustify.Left,
+            },
+            column_separator = "  ",
+            scroll = self.scroll,
+            show_title = False,
+        )
+        print(self.table.title)
+        self.set_dir(dir)
     
     def set_dir(self,dir:str):
         self.dir=dir
@@ -90,6 +133,14 @@ class FileList:
 
         for fname in file_names:
             self.files.append(File(os.path.join(self.dir, fname)))
+        
+        self.update_table()
+
+    def update_table(self):
+        self.table.title=self.dir
+        self.table.clear()
+        for f in self.files:
+            self.table.add_row(f.get_as_row_data(),dont_recalc_sizes=True)
     
     def get_files(self):
         files=[]
@@ -112,61 +163,21 @@ class FileList:
     
     def view(self) -> str:
         s:str = ""
-        column_sizes={
-            "perms": 0,
-            "name": 0,
-            "size": 0,
-            "info": 0,
-        }
-        # get table sizes
-        for file in self.files:
-            # get file stuff
-            perms=file.get_permissions()
-            size=file.get_size()
-            info=file.info
 
-            #update table sizes
-            if len(perms) > column_sizes["perms"]:
-                column_sizes["perms"] = len(perms)
-            if len(size) > column_sizes["size"]:
-                column_sizes["size"] = len(size)
-            if len(file.get_name()) > column_sizes["name"]:
-                column_sizes["name"] = len(file.get_name())
-            if len(info) > column_sizes["info"]:
-                column_sizes["info"] = len(info)
-        
-        i = 0
-        # display file table
-        for file in self.files:
-            if i<self.scroll or i>=(self.scroll+self.height):
-                i += 1
-                continue
+        self.table.scroll = self.scroll
+        self.table.width = self.width
+        self.table.calc_column_sizes()
+        self.table.update_view()
 
-            # get file stuff
-            perms=file.get_permissions()
-            size=file.get_size()
-            info=file.info
+        s += self.table.view()
 
-            if i == self.selected:
-                s += colors.invert.on
-            s += perms.ljust(column_sizes["perms"])
-            s += "  "
-            s += file.get_color()
-            s += file.get_name().ljust(column_sizes["name"])
-            s += colors.fg.default
-            s += "  "
-            s += size.rjust(column_sizes["size"])
-            s += "  "
-            s += info.ljust(column_sizes["info"])
 
-            # s = s.rstrip()
-
-            s += "\n"
-
-            if i == self.selected:
-                s += colors.invert.off
-
-            i += 1
+        # debug stuff
+        s += "\n"
+        s += f"selected={self.table.selected}"
+        s += f" scroll={self.table.scroll}"
+        s += f" height={self.table.height}"
+        s += f" rows={len(self.table.rows)}"
         
         return s
 
