@@ -1,16 +1,28 @@
-import os,sys,argparse,termios,tty,time
+#!/usr/bin/env python3
+import os,sys,argparse,termios,tty,time,signal
 import file_list
 
+stdin_fd = sys.stdin.fileno()
+print(f"stdin: {stdin_fd}")
+# quit(0)
+try:
+    old_term_settings = termios.tcgetattr(stdin_fd)
+except:
+    old_term_settings = None
+
+def reset_term():
+    if old_term_settings == None:
+        return
+    termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_term_settings)
+
 def getchar():
-   #Returns a single character from standard input
-   fd = sys.stdin.fileno()
-   old_settings = termios.tcgetattr(fd)
-   try:
-      tty.setraw(sys.stdin.fileno())
-      ch = sys.stdin.read(1)
-   finally:
-      termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-   return ch
+    #Returns a single character from standard input
+    try:
+        tty.setraw(stdin_fd)
+        ch = sys.stdin.read(1)
+    finally:
+        reset_term()
+    return ch
 
 parser = argparse.ArgumentParser(
     prog='Explorer',
@@ -19,6 +31,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('dir', nargs='?', default=os.getcwd())
 parser.add_argument('-o', '--once', action='store_true')
+parser.add_argument('-b', '--batch', action='store_true')
+parser.add_argument('-n', '--iterations', type=int, default=-1)
 
 args = parser.parse_args()
 
@@ -33,25 +47,24 @@ if args.once:
 def update_files():
     files.set_dir(path)
 
-# def clampSelection():
-#     files.selected=max(0,min(len(files.files)-1, files.selected)) # min: 0  max: # of files - 1
-
-# def updateScroll():
-#     # center the view around the selected item, but clamp it to not go out of bounds
-#     files.scroll = int(max(
-#         0,
-#         min(
-#             len(files.files)-files.height,
-#             files.selected-files.height/2
-#         )
-#     ))
+def update():
+    try:
+        term_size = os.get_terminal_size()
+        files.height = term_size.lines - 15
+        files.width = term_size.columns - 1
+    except OSError:
+        # term_size = os.terminal_size([],{})
+        pass
+    files.update_table()
 
 def view():
-    s = "\x1b[2J\x1b[H"
+    s = "\x1b[2J\x1b[H\x1b[0m"
     s += f"==== {path} ====\n"
     s += f"{len(files.get_files())} files, "
     s += f"{len(files.get_folders())} folders, "
     s += f"{len(files.get_links())} links"
+    s += "\n"
+    s += f"{files.table.width}x{files.table.height}"
     s += "\n\n"
     
     s += files.view()
@@ -93,16 +106,23 @@ def handle_input(char):
         pass
 
 if __name__ == "__main__":
+    iteration = 0
+    def sigwinch_handle(signum,frame):
+        reset_term() # reset terminal to not mess up printing
+        update()
+        print(view())
+        tty.setraw(stdin_fd) # set tty back to raw mode for input
+    signal.signal(signal.SIGWINCH,sigwinch_handle)
+    update()
     print(view())
     while running:
-        term_size = os.get_terminal_size()
-        files.table.height = term_size.lines - 10
-        char = getchar()
-        handle_input(char)
-        # clampSelection()
-        # updateScroll()
-        files.table.update_view()
+        if args.iterations > 0 and iteration >= args.iterations:
+            running=False
+        if not args.batch:
+            char = getchar()
+            handle_input(char)
+        update()
 
         # print("Loading...")
         print(view())
-        # print(f"Cool '{char}'")
+        iteration += 1
