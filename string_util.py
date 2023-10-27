@@ -13,7 +13,7 @@ def strip_ansi(s: str):
 
 def text_width(s: str):
     width=0
-    for line in s.splitlines():
+    for line in s.split("\n"):
         width=max(width,len(strip_ansi(line)))
     return width
 
@@ -38,7 +38,7 @@ def justify(s: str, width: int, direction: TextJustify, fill: str = " "):
 def set_maxwidth(s:str,maxwidth:int):
     if maxwidth<0:
         return s
-    lines = s.splitlines()
+    lines = s.split("\n")
     for i in range(len(lines)):
         l=lines[i]
         index=horizontal_position_to_index(l,maxwidth)
@@ -73,9 +73,13 @@ def join_horizontal(
     elif h2>h1:
         for i in range(h2-h1):
             s1+="\n"
+    # redo text_heights
+    h1=text_height(s1)
+    h2=text_height(s2)
+
     new_str = ""
-    s1_lines=s1.splitlines()
-    s2_lines=s2.splitlines()
+    s1_lines=s1.split("\n")
+    s2_lines=s2.split("\n")
     for i in range(h1):
         line1=s1_lines[i]
         line2=s2_lines[i]
