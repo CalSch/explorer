@@ -12,7 +12,11 @@ def strip_ansi(s: str):
     return ansi_escape.sub('',s)
 
 def text_width(s: str):
-    return len(strip_ansi(s))
+    width=0
+    for line in s.splitlines():
+        width=max(width,len(strip_ansi(line)))
+    return width
+
 def text_height(s: str):
     return s.count("\n")+1
 
@@ -22,6 +26,7 @@ def rjust(s: str, width: int, fill: str = " "):
     return fill*(width-text_width(s)) + s
 def cjust(s: str, width: int, fill: str = " "):
     return fill*math.floor((width-text_width(s))/2) + s + fill*math.ceil((width-text_width(s))/2)
+
 def justify(s: str, width: int, direction: TextJustify, fill: str = " "):
     if direction == TextJustify.Left:
         return ljust(s,width,fill)
@@ -59,7 +64,6 @@ def join_horizontal(
     ) -> str:
     w1=text_width(s1)
     w2=text_width(s2)
-    width = max(w1,w2) + padding
     h1=text_height(s1)
     h2=text_height(s2)
     #make the height the same
@@ -75,9 +79,9 @@ def join_horizontal(
     for i in range(h1):
         line1=s1_lines[i]
         line2=s2_lines[i]
-        new_str += justify(line1,width,s1_justify,s1_justify_char)
+        new_str += justify(line1,w1,s1_justify,s1_justify_char)
         new_str += padding_char * padding
-        new_str += justify(line2,width,s2_justify,s2_justify_char)
+        new_str += justify(line2,w2,s2_justify,s2_justify_char)
         new_str += "\n"
     return new_str
     
