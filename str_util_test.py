@@ -31,3 +31,8 @@ print(
         str2
     )
 )
+
+print("\n\n=== Borders ===")
+print(su.border(str1,su.retro_border))
+print(su.border(str1,su.normal_border))
+print(su.border(str1,su.round_border))

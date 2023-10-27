@@ -6,6 +6,43 @@ class TextJustify(Enum):
     Right = 1
     Center = 2
 
+class BorderStyle:
+    def __init__(self,
+        top: str,
+        bottom: str,
+        left: str,
+        right: str,
+        #corners
+        tl: str,
+        tr: str,
+        bl: str,
+        br: str,
+    ):
+        self.top=top
+        self.bottom=bottom
+        self.left=left
+        self.right=right
+        self.tl=tl
+        self.tr=tr
+        self.bl=bl
+        self.br=br
+def make_simple_border(horiz:str,vert:str,corner:str) -> BorderStyle:
+    return BorderStyle(
+        horiz,horiz,
+        vert,vert,
+        corner,corner,corner,corner
+    )
+
+retro_border = make_simple_border("-","|","+")
+normal_border = BorderStyle(
+    "─","─","│","│",
+    "┌","┐","└","┘"
+)
+round_border = BorderStyle(
+    "─","─","│","│",
+    "╭","╮","╰","╯"
+)
+
 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def strip_ansi(s: str):
@@ -88,4 +125,21 @@ def join_horizontal(
         new_str += justify(line2,w2,s2_justify,s2_justify_char)
         new_str += "\n"
     return new_str
+
+def border(text:str,style:BorderStyle) -> str:
+    lines=text.split("\n")
+    width=text_width(text)
+    s = ""
+    s += style.tl
+    s += style.top * width
+    s += style.tr
+    s += "\n"
+
+    for line in lines:
+        s += style.left + ljust(line,width) + style.right
+        s += "\n"
     
+    s += style.bl
+    s += style.bottom * width
+    s += style.br
+    return s
