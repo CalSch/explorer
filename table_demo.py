@@ -3,16 +3,17 @@ import string_util,table,colors,random
 cols = ["thing1","thing2","is cool"]
 
 t = table.Table(
-    "hello",
-    15,
-    cols,
-    ["thing2", "is cool", "thing1"],
-    {
+    title="hello",
+    width= 50,
+    height= 10,
+    columns=cols,
+    column_order=["thing2", "is cool", "thing1"],
+    column_justifies={
         "thing1": string_util.TextJustify.Left,
         "thing2": string_util.TextJustify.Right,
         "is cool": string_util.TextJustify.Center,
     },
-    " | "
+    column_separator=" | "
 )
 
 t.add_row({
@@ -39,8 +40,11 @@ for i in range(30):
     })
 
 t.calc_column_sizes()
+t.update_disp_rows()
+t.update_view()
 
 while True:
+    print("\x1b[2J\x1b[H")
     print(t.view())
     t.scroll += 1
     input()
