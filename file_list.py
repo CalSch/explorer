@@ -3,7 +3,7 @@ import colors
 import table
 
 def format_size(num, suffix="B"):
-    for unit in ("", "K", "M", "G", "T", "P", "E", "Z"):
+    for unit in (" ", "K", "M", "G", "T", "P", "E", "Z"):
         if abs(num) < 1000.0:
             return f"{num:3.1f}{unit}{suffix}"
         num /= 1000.0
@@ -18,6 +18,9 @@ file_flag_to_color = {
     "p": colors.fg.cyan,
     "b": colors.fg.magenta,
 }
+
+file_info_cache: dict[str,str]={}
+file_mime_cache: dict[str,str]={}
 
 class File:
     def __init__(self,path:str):
@@ -50,17 +53,29 @@ class File:
             return ""
         if os.path.isdir(self.path):
             return "directory"
+        
+        if self.path in file_info_cache.keys():
+            return file_info_cache[self.path]
+        
         info = subprocess.check_output(["file","-e","elf","-b",self.path])
         text = info.decode("utf-8")
         text = text.strip("\n")
+
+        file_info_cache[self.path]=text
         return text
 
     def get_mime(self) -> str:
         if self.broken:
             return ""
+        
+        if self.path in file_mime_cache.keys():
+            return file_mime_cache[self.path]
+        
         info = subprocess.check_output(["file","-i","-b",self.path])
         text = info.decode("utf-8")
         text = text.strip("\n")
+
+        file_mime_cache[self.path]=text
         return text
     
     def get_color(self) -> str:
@@ -100,11 +115,12 @@ class FileList:
         self.selected = 0
         self.scroll = 0
         self.width = 120
+        self.height = 15
 
         self.table = table.Table(
             title = self.dir,
-            height = 15,
             width = self.width,
+            height = self.height,
             columns = ["path","name","size","perms","info","mime"],
             column_order = ["perms","name","size","info"],
             column_justifies = {
@@ -119,8 +135,11 @@ class FileList:
             scroll = self.scroll,
             show_title = False,
         )
-        print(self.table.title)
         self.set_dir(dir)
+        @self.table.set_filter
+        def _(row: table.TableRow):
+            # name=string_util.strip_ansi(row.data["name"])
+            return True
     
     def set_dir(self,dir:str):
         self.dir=dir
@@ -141,6 +160,7 @@ class FileList:
         self.table.clear()
         for f in self.files:
             self.table.add_row(f.get_as_row_data(),dont_recalc_sizes=True)
+        self.table.update_disp_rows()
     
     def get_files(self):
         files=[]
@@ -166,6 +186,7 @@ class FileList:
 
         self.table.scroll = self.scroll
         self.table.width = self.width
+        self.table.height = self.height
         self.table.calc_column_sizes()
         self.table.update_view()
 
@@ -177,6 +198,7 @@ class FileList:
         s += f"selected={self.table.selected}"
         s += f" scroll={self.table.scroll}"
         s += f" height={self.table.height}"
+        s += f" width={self.width}"
         s += f" rows={len(self.table.rows)}"
         
         return s
