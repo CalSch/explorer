@@ -50,6 +50,8 @@ class Table:
         self.scroll = scroll
         self.selected = 0
         self.show_title=show_title
+        self.filter=lambda s : True
+        self.disp_rows: list[TableRow]=[]
     
     def add_row(self, data: dict[str,str], dont_recalc_sizes: bool = False):
         row = TableRow(data,self.column_justifies,self.column_separator)
@@ -57,8 +59,19 @@ class Table:
         if not dont_recalc_sizes:
             self.calc_column_sizes()
     
+    def set_filter(self,func):
+        self.filter=func
+        self.update_disp_rows()
+    
+    def update_disp_rows(self):
+        self.disp_rows=[]
+        for row in self.rows:
+            if self.filter(row):
+                self.disp_rows.append(row)
+    
     def clear(self):
         self.rows = []
+        self.update_disp_rows()
     
     def calc_column_sizes(self):
         for col in self.columns:
@@ -85,14 +98,14 @@ class Table:
     
     def update_view(self):
         # Clamp selection
-        self.selected=max(0,min(len(self.rows)-1, self.selected)) # min: 0  max: # of files - 1
+        self.selected=max(0,min(len(self.disp_rows)-1, self.selected)) # min: 0  max: # of files - 1
 
         # Update scrolling
         # center the view around the selected item, but clamp it to not go out of bounds
         self.scroll = int(max(
             0,
             min(
-                len(self.rows)-self.height,
+                len(self.disp_rows)-self.height,
                 # 100000000000000,
                 self.selected-self.height/2
             )
@@ -114,20 +127,27 @@ class Table:
             s += "... "
         s += "\n"
         i = 0
-        for row in self.rows:
-            if i<self.scroll or i>self.scroll+self.height:
+        for row in self.disp_rows:
+            if (
+                i<self.scroll or
+                i>self.scroll+self.height-1
+            ):
                 i += 1
                 continue
+            s += "\x1b[0m"
             if i == self.selected:
                 s += colors.invert.on
+
             s += row.view(self.column_sizes,self.column_order)
+
             if i == self.selected:
                 s += colors.invert.off
             s += "\n"
 
             i += 1
-        if self.scroll+self.height < len(self.rows)-1:
+        if self.scroll+self.height < len(self.disp_rows)-1:
             s += "... "
         s += "\n"
+        s += "\x1b[0m"
 
-        return s
+        return string_util.set_maxwidth(s,self.width)
