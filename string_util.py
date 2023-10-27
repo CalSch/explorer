@@ -35,9 +35,17 @@ def set_maxwidth(s:str,maxwidth:int):
         return s
     lines = s.splitlines()
     for i in range(len(lines)):
-        lines[i]=lines[i][:maxwidth] #TODO: this ignores invisible characters and ANSI escape sequences!
+        l=lines[i]
+        index=horizontal_position_to_index(l,maxwidth)
+        lines[i]=lines[i][:index]
     
     return "\n".join(lines)
+def horizontal_position_to_index(s:str,x:int):
+    # i don't think this works when `x` is inside an ANSI escape sequence
+    for i in range(len(s)):
+        new_str=s[:i]
+        if text_width(new_str) == x:
+            return i
 
 def join_horizontal(
         s1: str,
