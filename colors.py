@@ -3,6 +3,9 @@ reset = "\x1b[0m"
 class invert:
     on = "\x1b[7m"
     off = "\x1b[27m"
+class dim:
+    on = "\x1b[2m"
+    off = "\x1b[22m"
 
 class fg:
     red     = "\x1b[31m"
@@ -13,6 +16,7 @@ class fg:
     cyan    = "\x1b[36m"
     white   = "\x1b[37m"
     default = "\x1b[39m"
+    grey    = "\x1b[38;5;0m" # 256-color
 
 class bg:
     red     = "\x1b[41m"
@@ -23,3 +27,4 @@ class bg:
     cyan    = "\x1b[46m"
     white   = "\x1b[47m"
     default = "\x1b[49m"
+    grey    = "\x1b[48;5;0m" # 256-color
