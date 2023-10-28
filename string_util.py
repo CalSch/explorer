@@ -75,6 +75,8 @@ def justify(s: str, width: int, direction: TextJustify, fill: str = " "):
 def set_maxwidth(s:str,maxwidth:int):
     if maxwidth<0:
         return s
+    if text_width(s)<=maxwidth:
+        return s
     lines = s.split("\n")
     for i in range(len(lines)):
         l=lines[i]
@@ -83,10 +85,11 @@ def set_maxwidth(s:str,maxwidth:int):
     
     return "\n".join(lines)
 def horizontal_position_to_index(s:str,x:int):
-    # i don't think this works when `x` is inside an ANSI escape sequence
-    for i in range(len(s)):
+    # go from right to left (it makes it work better and i dont want to explain it here)
+    for i in range(len(s)-1,-1,-1):
         new_str=s[:i]
         if text_width(new_str) == x:
+            # print("|",i,"|",new_str,";;\x1b[0m;;")
             return i
 
 def join_horizontal(
