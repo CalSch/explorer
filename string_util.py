@@ -42,6 +42,10 @@ round_border = BorderStyle(
     "─","─","│","│",
     "╭","╮","╰","╯"
 )
+bold_border = BorderStyle(
+    "━","━","┃","┃",
+    "┏","┓","┗","┛"
+)
 
 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
