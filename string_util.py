@@ -1,5 +1,6 @@
 import re,math
 from enum import Enum
+import colors
 
 class TextJustify(Enum):
     Left = 0
@@ -17,6 +18,7 @@ class BorderStyle:
         tr: str,
         bl: str,
         br: str,
+        color: str = colors.fg.default
     ):
         self.top=top
         self.bottom=bottom
@@ -26,6 +28,7 @@ class BorderStyle:
         self.tr=tr
         self.bl=bl
         self.br=br
+        self.color=color
 def make_simple_border(horiz:str,vert:str,corner:str) -> BorderStyle:
     return BorderStyle(
         horiz,horiz,
@@ -45,6 +48,10 @@ round_border = BorderStyle(
 bold_border = BorderStyle(
     "━","━","┃","┃",
     "┏","┓","┗","┛"
+)
+dashed_border = BorderStyle(
+    "╌","╌","┆","┆",
+    "┌","┐","└","┘"
 )
 
 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
@@ -128,6 +135,7 @@ def join_horizontal(
         line1=s1_lines[i]
         line2=s2_lines[i]
         new_str += justify(line1,w1,s1_justify,s1_justify_char)
+        new_str += colors.reset
         new_str += padding_char * padding
         new_str += justify(line2,w2,s2_justify,s2_justify_char)
         new_str += "\n"
@@ -137,16 +145,22 @@ def border(text:str,style:BorderStyle) -> str:
     lines=text.split("\n")
     width=text_width(text)
     s = ""
+    s += style.color
     s += style.tl
     s += style.top * width
     s += style.tr
+    s += colors.reset
     s += "\n"
 
     for line in lines:
-        s += style.left + ljust(line,width) + style.right
+        s += style.color
+        s += style.left + colors.reset + ljust(line,width) + style.color + style.right
+        s += colors.reset
         s += "\n"
     
+    s += style.color
     s += style.bl
     s += style.bottom * width
     s += style.br
+    s += colors.reset
     return s
