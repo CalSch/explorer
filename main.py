@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import os,sys,argparse,termios,tty,time,signal
 import file_list
+import text_pager
+import string_util as su
+import colors
 
 stdin_fd = sys.stdin.fileno()
 print(f"stdin: {stdin_fd}")
@@ -38,6 +41,9 @@ args = parser.parse_args()
 
 path = args.dir
 files = file_list.FileList(path)
+pager = text_pager.TextPager()
+show_pager = False
+pager_focused = False
 
 running = True
 
@@ -51,10 +57,17 @@ def update():
     try:
         term_size = os.get_terminal_size()
         files.height = term_size.lines - 15
-        files.width = term_size.columns - 1
+        if show_pager:
+            files.width = int(term_size.columns/2 - 1)
+        else:
+            files.width = term_size.columns - 1
+        pager.width = int(term_size.columns/2)
     except OSError:
         # term_size = os.terminal_size([],{})
         pass
+    pager.border_style = su.normal_border if pager_focused else su.dashed_border
+    pager.border_style.color = colors.fg.default if pager_focused else colors.dim.on
+    pager.update()
     files.update_table()
 
 def view():
@@ -67,14 +80,18 @@ def view():
     s += f"{files.table.width}x{files.table.height}"
     s += "\n\n"
     
-    s += files.view()
+    if show_pager:
+        # s += pager.view()
+        s += su.join_horizontal(files.view(),pager.view(),padding_char="|")
+    else:
+        s += files.view()
 
     # s+=f"\n\n{files.selected} {files.scroll} {files.height}"
 
     return s
 
 def handle_input(char):
-    global running,path
+    global running,path,show_pager,pager_focused
     f=open('char','a')
     f.write(char)
     f.close()
@@ -84,11 +101,20 @@ def handle_input(char):
         getchar() #skip [
         char2=getchar()
         if char2=="A":
-            files.table.selected-=1
+            if pager_focused:
+                pager.scroll_y -= 1
+            else:
+                files.table.selected-=1
         elif char2=="B":
-            files.table.selected+=1
+            if pager_focused:
+                pager.scroll_y += 1
+            else:
+                files.table.selected+=1
+        elif char2 in ["C","D"] and show_pager:
+            pager_focused=not pager_focused
     elif char=="\r":
         file = files.files[files.table.selected]
+        show_pager=False
         if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
             path = os.path.abspath( os.path.join( path, file.get_name() ) )
             update_files()
@@ -97,6 +123,10 @@ def handle_input(char):
                 # print(new_files)
                 index = new_files.index( os.path.basename(os.path.dirname(file.path)) )
                 files.table.selected = index
+        elif os.path.isfile(os.path.realpath(file.path)):
+            show_pager=True
+            # pager_focused=True
+            pager.load_from_file(file)
 
     elif char=="q":
         running=False
