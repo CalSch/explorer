@@ -195,11 +195,11 @@ class FileList:
 
         # debug stuff
         s += "\n"
-        s += f"selected={self.table.selected}"
-        s += f" scroll={self.table.scroll}"
-        s += f" height={self.table.height}"
-        s += f" width={self.width}"
-        s += f" rows={len(self.table.rows)}"
+        # s += f"selected={self.table.selected}"
+        # s += f" scroll={self.table.scroll}"
+        # s += f" height={self.table.height}"
+        # s += f" width={self.width}"
+        # s += f" rows={len(self.table.rows)}"
         
         return s
 
