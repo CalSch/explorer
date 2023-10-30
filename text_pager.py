@@ -2,8 +2,29 @@ import string_util as su
 import colors
 import re
 import math
+import pygments
+from pygments.lexers import get_lexer_for_mimetype,get_lexer_for_filename,guess_lexer
+from pygments.formatters import TerminalFormatter
+from pygments.util import ClassNotFound
+from file_list import File
 
 tab_regex = re.compile("(\t|    )")
+
+def get_file_lexer(mime,name,text):
+    try:
+        return get_lexer_for_mimetype(mime)
+    except ClassNotFound:
+        pass
+    try:
+        return guess_lexer(text)
+    except ClassNotFound:
+        pass
+    try:
+        return get_lexer_for_filename(name)
+    except ClassNotFound:
+        pass
+    return None
+
 
 class TextPager:
     def __init__(self,
@@ -15,18 +36,38 @@ class TextPager:
         self.text="hello!"
         self.scroll_x=0
         self.scroll_y=0
+        self.border_style: su.BorderStyle = su.normal_border
 
     def get_line_count(self) -> int:
         return su.text_height(self.text)
     def get_text_height(self) -> int:
         return (
-            self.height
-            - 2 # borders
+            min(
+                self.get_line_count(),
+                self.height - 2 # borders
+            )
         )
     
     def update(self):
         self.scroll_y = max(min( self.scroll_y, self.get_line_count()-self.get_text_height()-2 ), 0)
     
+    def update_highlight(self,mime:str="",name:str=""):
+        self.text=su.strip_ansi(self.text)
+        lexer = get_file_lexer(mime,name,self.text)
+        self.lexer=lexer
+        if lexer != None:
+            self.text=pygments.highlight(self.text,lexer,TerminalFormatter())
+    
+    def load_from_file(self,file: File):
+        try:
+            with open(file.path,'r') as f:
+                self.text=f.read()
+        except UnicodeDecodeError:
+            with open(file.path,'rb') as f:
+                self.text=f.read().decode(errors="replace")
+        self.update_highlight(file.mime,file.get_name())
+        
+
     def view(self):
         s = ""
 
@@ -85,5 +126,18 @@ class TextPager:
             line_index += 1
             y += 1
         s = s.removesuffix("\n")
-        print("-"*self.width)
-        return su.border(s,su.round_border)
+        # print("-"*self.width)
+
+        # debug stuff
+        s += "\n"
+        # s += f"selected={self.selected}"
+        s += f" scroll={self.scroll_y}"
+        s += f" width={self.width}"
+        s += f" height={self.height}"
+        s += f" lines={self.get_line_count()}"
+        s += f" text_width={text_width}"
+        s += f" text_height={self.get_text_height()}"
+        s += f"\n{type(self.lexer)}"
+
+        s = su.set_maxwidth(s,text_width)
+        return su.border(s,self.border_style)
