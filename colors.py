@@ -7,6 +7,13 @@ class dim:
     on = "\x1b[2m"
     off = "\x1b[22m"
 
+class bold:
+    on = "\x1b[1m"
+    off = "\x1b[22m"
+class italic:
+    on = "\x1b[3m"
+    off = "\x1b[23m"
+
 class fg:
     red     = "\x1b[31m"
     green   = "\x1b[32m"
