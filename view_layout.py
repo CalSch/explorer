@@ -15,7 +15,7 @@ class ViewLayout:
         return i
 
     def move_focus(self,dx:int,dy:int):
-        row_columns = self.get_row_columns(self.focus[0])
+        row_columns = self.get_row_columns(self.focus[1])
         self.focus[0] = (self.focus[0] + dx) % row_columns
         self.focus[1] = (self.focus[1] + dy) % len(self.structure)
     
@@ -30,4 +30,7 @@ class ViewLayout:
             s += "-"*su.text_width(row_str)
             s += "\n"
             s += row_str
+        s += "\n"
+        s += f"focus.x={self.focus[0]}"
+        s += f" focus.y={self.focus[1]}"
         return s
