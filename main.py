@@ -68,6 +68,9 @@ pager.show = False
 show_pager = False
 pager_focused = False
 
+debug_pager = text_pager.TextPager(80,15,"Debug Log","DebugPager")
+debug_pager.onfocus()
+
 layout = view_layout.ViewLayout([
     [ files, pager ]
 ],10,10)
@@ -81,6 +84,7 @@ def update_files():
     files.set_dir(path)
 
 def update():
+    debug_pager.text=debug.debug_log
     try:
         term_size = os.get_terminal_size()
         layout.width = term_size.columns-2
@@ -96,8 +100,8 @@ def update():
         pass
     pager.update()
     files.update_table()
-    debug.debug_log.scroll_y=debug.debug_log.get_line_count()
-    debug.debug_log.update()
+    debug_pager.scroll_y=debug_pager.get_line_count()
+    debug_pager.update()
 
 def view():
     s = "\x1b[2J\x1b[H\x1b[0m"
@@ -122,10 +126,10 @@ def view():
 
     # s+=f"\n\n{files.selected} {files.scroll} {files.height}"
     if debug.debug_mode:
-        x=layout.width-debug.debug_log.width-1
+        x=layout.width-debug_pager.width-1
         s += "\x1b[s" # save cursor position
         s += su.goto(x,4)
-        s += su.float_text(debug.debug_log.view())
+        s += su.float_text(debug_pager.view())
         s += "\x1b[u" # restore cursor position
 
     return s

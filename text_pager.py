@@ -9,23 +9,24 @@ from pygments.util import ClassNotFound
 from file_list import File
 import component
 import keys
+import debug
 
 tab_regex = re.compile("(\t|    )")
 
 def get_file_lexer(mime,name,text):
     try:
-        return get_lexer_for_mimetype(mime)
+        return (get_lexer_for_mimetype(mime),"mimetype")
     except ClassNotFound:
         pass
     try:
-        return guess_lexer(text)
+        return (get_lexer_for_filename(name),"filename")
     except ClassNotFound:
         pass
     try:
-        return get_lexer_for_filename(name)
+        return (guess_lexer(text),"guess")
     except ClassNotFound:
         pass
-    return None
+    return (None,"none")
 
 
 class TextPager(component.Component):
@@ -61,10 +62,12 @@ class TextPager(component.Component):
     
     def update_highlight(self,mime:str="",name:str=""):
         self.text=su.strip_ansi(self.text)
-        lexer = get_file_lexer(mime,name,self.text)
+        lexer, method = get_file_lexer(mime,name,self.text)
         self.lexer=lexer
         if lexer != None:
             self.text=pygments.highlight(self.text,lexer,TerminalFormatter())
+        debug.debug_log += f"Loaded {type(lexer)}\n"
+        debug.debug_log += f"Method {method}\n"
     
     def load_from_file(self,file: File):
         try:
