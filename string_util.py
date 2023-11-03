@@ -113,6 +113,10 @@ def join_horizontal(
         s1_justify_char: str = " ",
         s2_justify_char: str = " ",
     ) -> str:
+    if s1=="":
+        return s2
+    if s2=="":
+        return s1
     w1=text_width(s1)
     w2=text_width(s2)
     h1=text_height(s1)
