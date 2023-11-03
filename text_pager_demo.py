@@ -6,7 +6,7 @@ from pygments.formatters import TerminalFormatter
 import magic
 mime = magic.Magic(mime=True)
 
-pager = TextPager()
+pager = TextPager(title="Cool File VERY big text")
 with open("main.py",'r') as f:
     text=highlight(
         f.read(),
