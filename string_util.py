@@ -95,6 +95,16 @@ def set_maxwidth(s:str,maxwidth:int):
         lines[i]=lines[i][:index]
     
     return "\n".join(lines)
+def set_minwidth(s:str,minwidth:int) -> str:
+    if minwidth<0:
+        return s
+    if text_width(s)>=minwidth:
+        return s
+    lines=s.split("\n")
+    for i in range(len(lines)):
+        lines[i]=ljust(s,minwidth)
+    return "\n".join(lines)
+
 def horizontal_position_to_index(s:str,x:int):
     # go from right to left (it makes it work better and i dont want to explain it here)
     for i in range(len(s)-1,-1,-1):
@@ -168,3 +178,12 @@ def border(text:str,style:BorderStyle) -> str:
     s += style.br
     s += colors.reset
     return s
+
+def float_text(s:str):
+    width=text_width(s)
+    s=set_minwidth(s,width)
+    s=s.replace("\n",f"\x1b[1B\x1b[{width}D")
+    return s
+
+def goto(col:int,row:int) -> str:
+    return f"\x1b[{row};{col}H"
