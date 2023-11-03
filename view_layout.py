@@ -47,9 +47,12 @@ class ViewLayout(Component):
     
                 row_str = su.join_horizontal(
                     row_str,
-                    su.set_maxwidth(
-                        comp.view(),
-                        comp.width
+                    su.set_maxheight(
+                        su.set_maxwidth(
+                            comp.view(),
+                            comp.width
+                        ),
+                        comp.height
                     ),
                     padding_char=" | "
                 )
