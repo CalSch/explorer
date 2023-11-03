@@ -7,6 +7,7 @@ from pygments.lexers import get_lexer_for_mimetype,get_lexer_for_filename,guess_
 from pygments.formatters import TerminalFormatter
 from pygments.util import ClassNotFound
 from file_list import File
+import component
 
 tab_regex = re.compile("(\t|    )")
 
@@ -26,13 +27,12 @@ def get_file_lexer(mime,name,text):
     return None
 
 
-class TextPager:
+class TextPager(component.Component):
     def __init__(self,
             width=80,
             height=30,
     ):
-        self.width=width
-        self.height=height
+        super().__init__(width,height)
         self.text="hello!"
         self.scroll_x=0
         self.scroll_y=0

@@ -1,5 +1,6 @@
 import string_util
 import colors
+import component
 
 class TableRow:
     def __init__(self,
@@ -26,7 +27,7 @@ class TableRow:
                 s += self.column_separator
         return s
 
-class Table:
+class Table(component.Component):
     def __init__(self,
                  title: str,
                  height: int,
@@ -38,6 +39,7 @@ class Table:
                  scroll: int = 0,
                  show_title: bool = True,
         ):
+        super().__init__(width,height)
         self.title=title
         self.columns=columns
         self.column_order=column_order
@@ -45,8 +47,6 @@ class Table:
         self.column_justifies: dict[str, string_util.TextJustify] = column_justifies
         self.rows: list[TableRow]=[]
         self.column_separator = column_separator
-        self.height = height
-        self.width = width
         self.scroll = scroll
         self.selected = 0
         self.show_title=show_title

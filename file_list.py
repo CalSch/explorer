@@ -1,6 +1,7 @@
 import os,stat,subprocess,string_util
 import colors
 import table
+import component
 
 def format_size(num, suffix="B"):
     for unit in (" ", "K", "M", "G", "T", "P", "E", "Z"):
@@ -108,14 +109,13 @@ class File:
             "mime": self.mime,
         }
 
-class FileList:
-    def __init__(self,dir:str):
+class FileList(component.Component):
+    def __init__(self,dir:str,width:int=120,height:int=15):
+        super().__init__(width,height)
         self.dir = dir
         self.files: list[File]=[]
         self.selected = 0
         self.scroll = 0
-        self.width = 120
-        self.height = 15
 
         self.table = table.Table(
             title = self.dir,
