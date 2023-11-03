@@ -86,11 +86,11 @@ def update():
         layout.width = term_size.columns-2
         layout.height = term_size.lines-1
         files.height = term_size.lines - 15
-        if show_pager:
+        if pager.show:
             files.width = int(term_size.columns/2 - 1)
         else:
             files.width = term_size.columns - 1
-        pager.width = int(term_size.columns/2)
+        pager.width = int(term_size.columns/2 - 2)
     except OSError:
         # term_size = os.terminal_size([],{})
         pass
