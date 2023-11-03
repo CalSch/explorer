@@ -21,13 +21,13 @@ def reset_term():
         return
     termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_term_settings)
 
-def getchar():
+def getchar(timeout:float=0.01):
     ch = ""
     #Returns a single character from standard input
     try:
         tty.setraw(stdin_fd,when=termios.TCSANOW)
         # ch = sys.stdin.read(1)
-        i, o, e = select.select( [sys.stdin], [], [], 0.01)
+        i, o, e = select.select( [sys.stdin], [], [], timeout)
         # print(i)
         if i:
             ch = (sys.stdin.buffer.raw.read(1)).decode('utf-8')
@@ -42,9 +42,11 @@ def getchar():
 def getstr():
     s = ""
     ret = ""
+    timeout=1 # the first getchar has a big timeout
     while ret != None:
         s += ret
-        ret = getchar()
+        ret = getchar(timeout)
+        timeout=0.01 # subsequent getchars have a small timeout
     return s
 
 parser = argparse.ArgumentParser(
@@ -92,8 +94,6 @@ def update():
     except OSError:
         # term_size = os.terminal_size([],{})
         pass
-    pager.border_style = su.normal_border if pager_focused else su.dashed_border
-    pager.border_style.color = colors.fg.default if pager_focused else colors.dim.on
     pager.update()
     files.update_table()
     debug.debug_log.scroll_y=debug.debug_log.get_line_count()
@@ -157,7 +157,7 @@ def handle_input(char):
     elif char=="\x1b[1;5C": # ctrl+left arrow
         layout.move_focus(-1,0)
 
-    elif char=="\r":
+    elif char in ["\r","\n"]:
         file = files.files[files.table.selected]
         show_pager=False
         if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks

@@ -22,9 +22,11 @@ class ViewLayout(Component):
         return i
 
     def move_focus(self,dx:int,dy:int):
+        self.get_focused_component().onunfocus()
         row_columns = self.get_row_columns(self.focus[1])
         self.focus[0] = (self.focus[0] + dx) % row_columns
         self.focus[1] = (self.focus[1] + dy) % len(self.structure)
+        self.get_focused_component().onfocus()
         debug.debug_log.text += f"Moved focus to {self.focus} '{self.get_focused_component().name}'\n"
     
     def get_focused_component(self) -> Component:

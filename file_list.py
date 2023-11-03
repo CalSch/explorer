@@ -188,6 +188,7 @@ class FileList(component.Component):
             self.selected -= 1
         elif text==keys.down:
             self.selected += 1
+        self.table.update_view()
 
     def view(self) -> str:
         s:str = ""
@@ -198,17 +199,19 @@ class FileList(component.Component):
         self.table.height = self.height
         self.table.calc_column_sizes()
         self.table.update_view()
+        self.selected=self.table.selected
+        self.scroll=self.table.scroll
 
         s += self.table.view()
 
 
         # debug stuff
         s += "\n"
-        # s += f"selected={self.table.selected}"
-        # s += f" scroll={self.table.scroll}"
-        # s += f" height={self.table.height}"
-        # s += f" width={self.width}"
-        # s += f" rows={len(self.table.rows)}"
+        s += f"selected={self.table.selected}"
+        s += f" scroll={self.table.scroll}"
+        s += f" height={self.table.height}"
+        s += f" width={self.width}"
+        s += f" rows={len(self.table.rows)}"
         
         return s
 

@@ -8,6 +8,12 @@ class Component:
     # Handle input
     def input(self,text:str):
         pass
+
+    def onfocus(self):
+        pass
+    
+    def onunfocus(self):
+        pass
     
     # Render the component
     def view(self) -> str:

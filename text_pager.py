@@ -41,6 +41,7 @@ class TextPager(component.Component):
         self.scroll_x=0
         self.scroll_y=0
         self.border_style: su.BorderStyle = su.normal_border
+        self.onunfocus()
         self.update_highlight()
 
     def get_line_count(self) -> int:
@@ -79,6 +80,14 @@ class TextPager(component.Component):
             self.scroll_y -= 1
         elif text==keys.down:
             self.scroll_y += 1
+
+    def onfocus(self):
+        self.border_style = su.normal_border
+        self.border_style.color = colors.fg.default
+    
+    def onunfocus(self):
+        self.border_style = su.dashed_border
+        self.border_style.color = colors.dim.on
 
     def view(self):
         s = ""
