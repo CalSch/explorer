@@ -35,6 +35,8 @@ def getstr():
         ret = getchar()
     return s
 
+print("press b to break")
+
 while True:
     s=getstr()
     if s=="":
