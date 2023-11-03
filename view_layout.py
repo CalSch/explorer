@@ -1,9 +1,16 @@
 from typing import Union
 from component import Component
 import string_util as su
+import debug
 
-class ViewLayout:
-    def __init__(self,structure:list[list[Component]]):
+class ViewLayout(Component):
+    def __init__(self,
+            structure:list[list[Component]],
+            width:int,
+            height:int,
+            name:str="ViewLayout",
+    ):
+        super().__init__(width,height,name)
         self.structure=structure
         self.focus=[0,0]
     
@@ -18,6 +25,15 @@ class ViewLayout:
         row_columns = self.get_row_columns(self.focus[1])
         self.focus[0] = (self.focus[0] + dx) % row_columns
         self.focus[1] = (self.focus[1] + dy) % len(self.structure)
+        debug.debug_log.text += f"Moved focus to {self.focus} '{self.get_focused_component().name}'\n"
+    
+    def get_focused_component(self) -> Component:
+        return self.structure[self.focus[1]][self.focus[0]]
+    
+    def input(self,text:str):
+        focused_comp=self.get_focused_component()
+        focused_comp.input(text)
+        debug.debug_log.text += f"{focused_comp.name} got {repr(text)}\n"
     
     def view(self) -> str:
         s = ""
@@ -26,7 +42,15 @@ class ViewLayout:
             for comp in row:
                 if not comp.show:
                     continue
-                row_str = su.join_horizontal(row_str,comp.view(),padding_char=" | ")
+    
+                row_str = su.join_horizontal(
+                    row_str,
+                    su.set_maxwidth(
+                        comp.view(),
+                        comp.width
+                    ),
+                    padding_char=" | "
+                )
             s += "-"*su.text_width(row_str)
             s += "\n"
             s += row_str

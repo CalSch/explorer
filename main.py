@@ -123,8 +123,10 @@ def view():
     # s+=f"\n\n{files.selected} {files.scroll} {files.height}"
     if debug.debug_mode:
         x=layout.width-debug.debug_log.width-1
+        s += "\x1b[s" # save cursor position
         s += su.goto(x,4)
         s += su.float_text(debug.debug_log.view())
+        s += "\x1b[u" # restore cursor position
 
     return s
 

@@ -8,6 +8,7 @@ from pygments.formatters import TerminalFormatter
 from pygments.util import ClassNotFound
 from file_list import File
 import component
+import keys
 
 tab_regex = re.compile("(\t|    )")
 
@@ -31,9 +32,10 @@ class TextPager(component.Component):
     def __init__(self,
             width=80,
             height=30,
-            title:str=""
+            title:str="",
+            name:str="TextPager"
     ):
-        super().__init__(width,height)
+        super().__init__(width,height,name)
         self.text="hello!\n"
         self.title=title
         self.scroll_x=0
@@ -72,6 +74,11 @@ class TextPager(component.Component):
                 self.text=f.read().decode(errors="replace")
         self.update_highlight(file.mime,file.get_name())
         
+    def input(self, text: str):
+        if text==keys.up:
+            self.scroll_y -= 1
+        elif text==keys.down:
+            self.scroll_y += 1
 
     def view(self):
         s = ""

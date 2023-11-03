@@ -38,8 +38,9 @@ class Table(component.Component):
                  column_separator: str = " ",
                  scroll: int = 0,
                  show_title: bool = True,
+                 name:str="Table"
         ):
-        super().__init__(width,height)
+        super().__init__(width,height,name)
         self.title=title
         self.columns=columns
         self.column_order=column_order

@@ -1,7 +1,8 @@
 class Component:
-    def __init__(self,width:int,height:int):
+    def __init__(self,width:int,height:int,name:str):
         self.width=width
         self.height=height
+        self.name=name
         self.show: bool=True
     
     # Handle input

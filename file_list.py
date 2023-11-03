@@ -2,6 +2,8 @@ import os,stat,subprocess,string_util
 import colors
 import table
 import component
+import keys
+import time
 
 def format_size(num, suffix="B"):
     for unit in (" ", "K", "M", "G", "T", "P", "E", "Z"):
@@ -110,8 +112,8 @@ class File:
         }
 
 class FileList(component.Component):
-    def __init__(self,dir:str,width:int=120,height:int=15):
-        super().__init__(width,height)
+    def __init__(self,dir:str,width:int=120,height:int=15,name:str="FileList"):
+        super().__init__(width,height,name)
         self.dir = dir
         self.files: list[File]=[]
         self.selected = 0
@@ -181,10 +183,17 @@ class FileList(component.Component):
                 links.append(file)
         return links
     
+    def input(self, text: str):
+        if text==keys.up:
+            self.selected -= 1
+        elif text==keys.down:
+            self.selected += 1
+
     def view(self) -> str:
         s:str = ""
 
         self.table.scroll = self.scroll
+        self.table.selected = self.selected
         self.table.width = self.width
         self.table.height = self.height
         self.table.calc_column_sizes()
