@@ -105,6 +105,14 @@ def set_minwidth(s:str,minwidth:int) -> str:
         lines[i]=ljust(s,minwidth)
     return "\n".join(lines)
 
+def set_maxheight(s:str,height:int) -> str:
+    if height<0:
+        return s
+    if text_height(s)>=height:
+        return s
+    lines=s.split("\n")
+    return "\n".join(lines[:height-1])
+
 def horizontal_position_to_index(s:str,x:int):
     # go from right to left (it makes it work better and i dont want to explain it here)
     for i in range(len(s)-1,-1,-1):
