@@ -6,6 +6,7 @@ import string_util as su
 import colors
 import view_layout
 import select
+import debug
 
 stdin_fd = sys.stdin.fileno()
 # print(f"stdin: {stdin_fd}")
@@ -67,7 +68,7 @@ pager_focused = False
 
 layout = view_layout.ViewLayout([
     [ files, pager ]
-])
+],10,10)
 
 running = True
 
@@ -80,6 +81,8 @@ def update_files():
 def update():
     try:
         term_size = os.get_terminal_size()
+        layout.width = term_size.columns-2
+        layout.height = term_size.lines-1
         files.height = term_size.lines - 15
         if show_pager:
             files.width = int(term_size.columns/2 - 1)
@@ -93,6 +96,8 @@ def update():
     pager.border_style.color = colors.fg.default if pager_focused else colors.dim.on
     pager.update()
     files.update_table()
+    debug.debug_log.scroll_y=debug.debug_log.get_line_count()
+    debug.debug_log.update()
 
 def view():
     s = "\x1b[2J\x1b[H\x1b[0m"
@@ -116,6 +121,10 @@ def view():
     s += layout.view()
 
     # s+=f"\n\n{files.selected} {files.scroll} {files.height}"
+    if debug.debug_mode:
+        x=layout.width-debug.debug_log.width-1
+        s += su.goto(x,4)
+        s += su.float_text(debug.debug_log.view())
 
     return s
 
@@ -126,18 +135,26 @@ def handle_input(char):
     f.close()
     if char=="\x03": #Ctrl-C
         running=False
-    elif char=="\x1b[A":
-        if pager_focused:
-            pager.scroll_y -= 1
-        else:
-            files.table.selected-=1
-    elif char=="\x1b[B":
-        if pager_focused:
-            pager.scroll_y += 1
-        else:
-            files.table.selected+=1
-    elif char=="\x1b[C":
+    # elif char=="\x1b[A":
+    #     if pager_focused:
+    #         pager.scroll_y -= 1
+    #     else:
+    #         files.table.selected-=1
+    # elif char=="\x1b[B":
+    #     if pager_focused:
+    #         pager.scroll_y += 1
+    #     else:
+    #         files.table.selected+=1
+
+    elif char=="\x1b[1;5A": # ctrl+up arrow
+        layout.move_focus(0,1)
+    elif char=="\x1b[1;5B": # ctrl+down arrow
+        layout.move_focus(0,-1)
+    elif char=="\x1b[1;5D": # ctrl+right arrow
+        layout.move_focus(1,0)
+    elif char=="\x1b[1;5C": # ctrl+left arrow
         layout.move_focus(-1,0)
+
     elif char=="\r":
         file = files.files[files.table.selected]
         show_pager=False
@@ -154,9 +171,12 @@ def handle_input(char):
             # pager_focused=True
             pager.load_from_file(file)
 
+    elif char=="d":
+        debug.debug_mode = not debug.debug_mode
     elif char=="q":
         running=False
     else:
+        layout.input(char)
         # print(char)
         # time.sleep(1)
         pass
@@ -176,7 +196,8 @@ if __name__ == "__main__":
             running=False
         if not args.batch:
             text = getstr()
-            handle_input(text)
+            if text != "":
+                handle_input(text)
         update()
 
         # print("Loading...")
