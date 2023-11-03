@@ -1,0 +1,1 @@
+- implement horizontal scrolling in TextPager
