@@ -31,12 +31,15 @@ class TextPager(component.Component):
     def __init__(self,
             width=80,
             height=30,
+            title:str=""
     ):
         super().__init__(width,height)
-        self.text="hello!"
+        self.text="hello!\n"
+        self.title=title
         self.scroll_x=0
         self.scroll_y=0
         self.border_style: su.BorderStyle = su.normal_border
+        self.update_highlight()
 
     def get_line_count(self) -> int:
         return su.text_height(self.text)
@@ -44,12 +47,14 @@ class TextPager(component.Component):
         return (
             min(
                 self.get_line_count(),
-                self.height - 2 # borders
+                self.height
+                            - 2 # borders
+                            - (self.title!="") # title (not if empty)
             )
         )
     
     def update(self):
-        self.scroll_y = max(min( self.scroll_y, self.get_line_count()-self.get_text_height()-2 ), 0)
+        self.scroll_y = max(min( self.scroll_y, self.get_line_count()-self.get_text_height() ), 0)
     
     def update_highlight(self,mime:str="",name:str=""):
         self.text=su.strip_ansi(self.text)
@@ -89,6 +94,10 @@ class TextPager(component.Component):
             - 3 # line number separator
         )
 
+        if self.title!="":
+            s += colors.bold.on
+            s += su.cjust(self.title+colors.bold.off,self.width-10) #idk why I did -10, it just looks right
+            s += "\n"
 
         line_index = 1
         y = 0
@@ -137,7 +146,7 @@ class TextPager(component.Component):
         s += f" lines={self.get_line_count()}"
         s += f" text_width={text_width}"
         s += f" text_height={self.get_text_height()}"
-        s += f"\n{type(self.lexer)}"
+        # s += f"\n{type(self.lexer)}"
 
         s = su.set_maxwidth(s,text_width)
         return su.border(s,self.border_style)
