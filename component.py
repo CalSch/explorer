@@ -4,16 +4,17 @@ class Component:
         self.height=height
         self.name=name
         self.show: bool=True
+        self.focused: bool=False
     
     # Handle input
     def input(self,text:str):
         pass
 
     def onfocus(self):
-        pass
+        self.focused=True
     
     def onunfocus(self):
-        pass
+        self.focused=False
     
     # Render the component
     def view(self) -> str:
