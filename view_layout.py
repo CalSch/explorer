@@ -54,9 +54,9 @@ class ViewLayout(Component):
                         ),
                         comp.height
                     ),
-                    padding_char=" | "
+                    padding_char=f" {su.normal_border.left} "
                 )
-            s += "-"*su.text_width(row_str)
+            s += su.normal_border.top*su.text_width(row_str)
             s += "\n"
             s += row_str
         s += "\n"
