@@ -188,6 +188,10 @@ class FileList(component.Component):
             self.selected -= 1
         elif text==keys.down:
             self.selected += 1
+        elif text==keys.page_up:
+            self.selected -= self.height
+        elif text==keys.page_down:
+            self.selected += self.height
         self.table.update_view()
 
     def view(self) -> str:

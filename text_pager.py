@@ -83,6 +83,10 @@ class TextPager(component.Component):
             self.scroll_y -= 1
         elif text==keys.down:
             self.scroll_y += 1
+        elif text==keys.page_up:
+            self.scroll_y -= self.get_text_height()
+        elif text==keys.page_down:
+            self.scroll_y += self.get_text_height()
 
     def onfocus(self):
         self.border_style = su.normal_border
@@ -141,7 +145,13 @@ class TextPager(component.Component):
             s += " "
             s += colors.dim.off
 
-            s += su.ljust(line+colors.reset,text_width)
+            s += su.set_maxwidth(
+                su.ljust(
+                    line+colors.reset,
+                    text_width
+                ),
+                text_width
+            )
 
             if has_scroll_y_bar:
                 s += colors.bg.white if y>=scroll_y_pos and y<=scroll_y_pos+scroll_y_height else colors.bg.grey
@@ -167,5 +177,4 @@ class TextPager(component.Component):
         s += f" text_height={self.get_text_height()}"
         # s += f"\n{type(self.lexer)}"
 
-        s = su.set_maxwidth(s,text_width)
         return su.border(s,self.border_style)
