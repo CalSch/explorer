@@ -143,6 +143,12 @@ class FileList(component.Component):
             # name=string_util.strip_ansi(row.data["name"])
             return True
     
+    def onsubmit(self):
+        pass
+
+    def set_onsubmit(self,func):
+        self.onsubmit=func
+    
     def set_dir(self,dir:str):
         self.dir=dir
         file_names=os.listdir(dir)
@@ -192,6 +198,8 @@ class FileList(component.Component):
             self.selected -= self.height
         elif text==keys.page_down:
             self.selected += self.height
+        elif text==keys.enter:
+            self.onsubmit(self)
         self.table.update_view()
 
     def view(self) -> str:
