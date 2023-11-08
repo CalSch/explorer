@@ -2,6 +2,7 @@ from typing import Union
 from component import Component
 import string_util as su
 import debug
+import keys
 
 class ViewLayout(Component):
     def __init__(self,
@@ -33,9 +34,18 @@ class ViewLayout(Component):
         return self.structure[self.focus[1]][self.focus[0]]
     
     def input(self,text:str):
-        focused_comp=self.get_focused_component()
-        focused_comp.input(text)
-        debug.debug_log += f"{focused_comp.name} got {repr(text)}\n"
+        if text==keys.ctrl_up:
+            self.move_focus(0,-1)
+        elif text==keys.ctrl_down:
+            self.move_focus(0,1)
+        elif text==keys.ctrl_left:
+            self.move_focus(-1,0)
+        elif text==keys.ctrl_right:
+            self.move_focus(1,0)
+        else:
+            focused_comp=self.get_focused_component()
+            debug.debug_log += f"{focused_comp.name} got {repr(text)}\n"
+            focused_comp.input(text)
     
     def view(self) -> str:
         s = ""

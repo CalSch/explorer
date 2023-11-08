@@ -7,6 +7,7 @@ import colors
 import view_layout
 import select
 import debug
+import functiontrace
 
 stdin_fd = sys.stdin.fileno()
 # print(f"stdin: {stdin_fd}")
@@ -58,6 +59,7 @@ parser.add_argument('dir', nargs='?', default=os.getcwd())
 parser.add_argument('-o', '--once', action='store_true')
 parser.add_argument('-b', '--batch', action='store_true')
 parser.add_argument('-n', '--iterations', type=int, default=-1)
+parser.add_argument('-p', '--profile', action='store_true')
 
 args = parser.parse_args()
 
@@ -67,6 +69,9 @@ pager = text_pager.TextPager()
 pager.show = False
 show_pager = False
 pager_focused = False
+
+if args.profile:
+    functiontrace.trace()
 
 debug_pager = text_pager.TextPager(80,15,"Debug Log","DebugPager")
 debug_pager.onfocus()
@@ -136,30 +141,21 @@ def view():
 
 def handle_input(char):
     global running,path,show_pager,pager_focused
-    f=open('char','a')
-    f.write(str(char))
-    f.close()
+    # f=open('char','a')
+    # f.write(str(char))
+    # f.close()
+    debug.debug_log += f"{repr(char)}\n"
     if char=="\x03": #Ctrl-C
         running=False
-    # elif char=="\x1b[A":
-    #     if pager_focused:
-    #         pager.scroll_y -= 1
-    #     else:
-    #         files.table.selected-=1
-    # elif char=="\x1b[B":
-    #     if pager_focused:
-    #         pager.scroll_y += 1
-    #     else:
-    #         files.table.selected+=1
 
-    elif char=="\x1b[1;5A": # ctrl+up arrow
-        layout.move_focus(0,1)
-    elif char=="\x1b[1;5B": # ctrl+down arrow
-        layout.move_focus(0,-1)
-    elif char=="\x1b[1;5D": # ctrl+right arrow
-        layout.move_focus(1,0)
-    elif char=="\x1b[1;5C": # ctrl+left arrow
-        layout.move_focus(-1,0)
+    # elif char=="\x1b[1;5A": # ctrl+up arrow
+    #     layout.move_focus(0,1)
+    # elif char=="\x1b[1;5B": # ctrl+down arrow
+    #     layout.move_focus(0,-1)
+    # elif char=="\x1b[1;5D": # ctrl+right arrow
+    #     layout.move_focus(1,0)
+    # elif char=="\x1b[1;5C": # ctrl+left arrow
+    #     layout.move_focus(-1,0)
 
     elif char in ["\r","\n"]:
         file = files.files[files.table.selected]
@@ -183,9 +179,6 @@ def handle_input(char):
         running=False
     else:
         layout.input(char)
-        # print(char)
-        # time.sleep(1)
-        pass
 
 if __name__ == "__main__":
     iteration = 0

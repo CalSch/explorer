@@ -1,4 +1,7 @@
 __pycache__/
 .vscode/
 char
+#compiled binaries
 *.out
+#profile outputs
+functiontrace*
