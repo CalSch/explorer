@@ -15,15 +15,15 @@ tab_regex = re.compile("(\t|    )")
 
 def get_file_lexer(mime,name,text):
     try:
-        return (get_lexer_for_mimetype(mime),"mimetype")
-    except ClassNotFound:
-        pass
-    try:
         return (get_lexer_for_filename(name),"filename")
     except ClassNotFound:
         pass
     try:
         return (guess_lexer(text),"guess")
+    except ClassNotFound:
+        pass
+    try:
+        return (get_lexer_for_mimetype(mime),"mimetype")
     except ClassNotFound:
         pass
     return (None,"none")
@@ -43,7 +43,7 @@ class TextPager(component.Component):
         self.scroll_y=0
         self.border_style: su.BorderStyle = su.normal_border
         self.onunfocus()
-        self.update_highlight()
+        # self.update_highlight()
 
     def get_line_count(self) -> int:
         return su.text_height(self.text)
