@@ -26,18 +26,19 @@ file_info_cache: dict[str,str]={}
 file_mime_cache: dict[str,str]={}
 
 class File:
-    def __init__(self,path:str):
+    def __init__(self,path:str,load_info: bool=True):
         self.path=path
         self.info=""
         self.mime=""
         self.broken=False
-        self.update()
+        self.update(load_info)
     
-    def update(self):
+    def update(self,load_info:bool):
         if not os.path.exists(self.path):
             self.broken=True
-        self.info=self.get_info()
-        self.mime=self.get_mime()
+        if load_info:
+            self.info=self.get_info()
+            self.mime=self.get_mime()
         self.stat=os.lstat(self.path) # use lstat to follow symlinks
     
     def get_permissions(self) -> str:
@@ -158,8 +159,39 @@ class FileList(component.Component):
 
         self.files=[]
 
+        file_paths=[]
+        for file in file_names:
+            file_paths.append(os.path.join(self.dir,file))
+        
+        print("loading info")
+        info_command = ["/usr/bin/file","-e","elf"]
+        info_command.extend(file_paths)
+        file_info_text = subprocess.check_output(info_command).decode()
+
+        for line in file_info_text.split("\n"):
+            if line=="":
+                continue
+            path = line.split(":")[0]
+            info = str(":".join(line.split(":")[1:])).strip()
+            file_info_cache[path]=info
+        # print(file_info_cache)
+        
+        print("loading mime")
+        mime_command = ["/usr/bin/file","-e","elf","-i"]
+        mime_command.extend(file_paths)
+        file_mime_text = subprocess.check_output(mime_command).decode()
+
+        for line in file_mime_text.split("\n"):
+            if line=="":
+                continue
+            path = line.split(":")[0]
+            mime = str(":".join(line.split(":")[1:])).strip()
+            file_mime_cache[path]=mime
+        # print(file_mime_cache)
+
         for fname in file_names:
             self.files.append(File(os.path.join(self.dir, fname)))
+
         
         self.update_table()
 
