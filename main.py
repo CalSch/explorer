@@ -158,20 +158,21 @@ def handle_input(char):
     #     layout.move_focus(-1,0)
 
     elif char in ["\r","\n"]:
-        file = files.files[files.table.selected]
-        show_pager=False
-        if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
-            path = os.path.abspath( os.path.join( path, file.get_name() ) )
-            update_files()
-            if file.get_name() == "..": # if going up, then select the previous folder
-                new_files=files.table.get_field("name")
-                # print(new_files)
-                index = new_files.index( os.path.basename(os.path.dirname(file.path)) )
-                files.table.selected = index
-        elif os.path.isfile(os.path.realpath(file.path)):
-            pager.show=True
-            # pager_focused=True
-            pager.load_from_file(file)
+        if path!="/":
+            file = files.files[files.table.selected]
+            show_pager=False
+            if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
+                path = os.path.abspath( os.path.join( path, file.get_name() ) )
+                update_files()
+                if file.get_name() == "..": # if going up, then select the previous folder
+                    new_files=files.table.get_field("name")
+                    # print(new_files)
+                    index = new_files.index( os.path.basename(os.path.dirname(file.path)) )
+                    files.table.selected = index
+            elif os.path.isfile(os.path.realpath(file.path)):
+                pager.show=True
+                # pager_focused=True
+                pager.load_from_file(file)
 
     elif char=="d":
         debug.debug_mode = not debug.debug_mode
