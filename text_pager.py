@@ -10,6 +10,7 @@ from file_list import File
 import component
 import keys
 import debug
+import scrollbar
 
 tab_regex = re.compile("(\t|    )")
 
@@ -43,6 +44,7 @@ class TextPager(component.Component):
         self.scroll_y=0
         self.border_style: su.BorderStyle = su.normal_border
         self.onunfocus()
+        self.scrollbar = scrollbar.Scrollbar(1, self.get_text_height(), self.get_text_height(), 0, self.get_line_count())
         # self.update_highlight()
 
     def get_line_count(self) -> int:
@@ -59,6 +61,7 @@ class TextPager(component.Component):
     
     def update(self):
         self.scroll_y = max(min( self.scroll_y, self.get_line_count()-self.get_text_height() ), 0)
+        self.scrollbar.view_scroll=self.scroll_y
     
     def update_highlight(self,mime:str="",name:str=""):
         self.text=su.strip_ansi(self.text)
@@ -77,7 +80,10 @@ class TextPager(component.Component):
             with open(file.path,'rb') as f:
                 self.text=f.read().decode(errors="replace")
         self.update_highlight(file.mime,file.get_name())
-        
+        self.scrollbar.view_height=self.get_text_height()        
+        self.scrollbar.height=self.get_text_height()        
+        self.scrollbar.total_height=self.get_line_count()   
+
     def input(self, text: str):
         if text==keys.up:
             self.scroll_y -= 1
@@ -106,13 +112,11 @@ class TextPager(component.Component):
         text_height = self.get_text_height()
 
         has_scroll_y_bar = line_count>text_height
-        scroll_y_pos = int(self.scroll_y/line_count * text_height)
-        scroll_y_height = math.ceil(text_height/line_count*text_height)
 
         text_width = (
             self.width
             - 2 # borders
-            - 2 # padding (theres only right padding w/o a scrollbar, so this is always 2)
+            - 3 # padding/scrollbar (theres only right padding w/o a scrollbar, so this is always 2)
             - line_number_digits # line numbers
             - 3 # line number separator
         )
@@ -153,17 +157,14 @@ class TextPager(component.Component):
                 text_width
             )
 
-            if has_scroll_y_bar:
-                s += colors.bg.white if y>=scroll_y_pos and y<=scroll_y_pos+scroll_y_height else colors.bg.grey
-                s += " "
-                s += colors.reset
-            else:
-                s += " " #more padding
+            if not has_scroll_y_bar:
+                s += " " #add padding
             s += "\n"
 
             line_index += 1
             y += 1
         s = s.removesuffix("\n")
+        s = su.join_horizontal(s, self.scrollbar.view(), padding=0)
         # print("-"*self.width)
 
         # debug stuff
