@@ -142,7 +142,7 @@ class Table(component.Component):
             if self.column_order[-1] != col: # dont print the separator on the last column
                 s += self.column_separator
         s += "\n"
-        s += "-" * self.get_total_width()
+        s += "-" * self.width
         s += "\n"
         if self.scroll>0:
             s += "... "
@@ -159,7 +159,7 @@ class Table(component.Component):
             if i == self.selected:
                 s += colors.invert.on
 
-            s += row.view(self.column_sizes,self.column_order)
+            s += su.set_width(row.view(self.column_sizes,self.column_order),self.width)
 
             if i == self.selected:
                 s += colors.invert.off
@@ -169,9 +169,10 @@ class Table(component.Component):
         if self.scroll+self.get_shown_rows() < len(self.disp_rows)-1:
             s += "... "
         s += "\n"
-        s = su.set_maxwidth(s, self.width - 2)
+        s = su.set_width(s, self.width - 2)
+        # s = su.set_minwidth(s, self.width - 2)
         if show_scrollbar:
             s = su.join_horizontal(s, self.scrollbar.view())
         s += "\x1b[0m"
 
-        return su.set_maxwidth(s,self.width)
+        return s

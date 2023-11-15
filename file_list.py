@@ -141,8 +141,16 @@ class FileList(component.Component):
         self.set_dir(dir)
         @self.table.set_filter
         def _(row: table.TableRow):
-            # name=string_util.strip_ansi(row.data["name"])
+            name=string_util.strip_ansi(row.data["name"])
+            # return name.startswith("t")
             return True
+    
+    def get_selected_file(self):
+        row = self.table.disp_rows[self.table.selected]
+        for f in self.files:
+            if f.path == row.data["path"]:
+                return f
+        return None
     
     def onsubmit(self):
         pass
