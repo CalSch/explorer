@@ -7,7 +7,6 @@ import colors
 import view_layout
 import select
 import debug
-import functiontrace
 
 stdin_fd = sys.stdin.fileno()
 # print(f"stdin: {stdin_fd}")
@@ -71,6 +70,7 @@ show_pager = False
 pager_focused = False
 
 if args.profile:
+    import functiontrace
     functiontrace.trace()
 
 debug_pager = text_pager.TextPager(80,15,"Debug Log","DebugPager")
