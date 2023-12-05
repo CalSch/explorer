@@ -112,10 +112,16 @@ def set_maxheight(s:str,height:int) -> str:
         return s
     lines=s.split("\n")
     return "\n".join(lines[:height-1])
+def set_minheight(s:str,height:int) -> str:
+    return s + "\n"*max(0,height-text_height(s))
 
 def set_width(s:str,width:int) -> str:
     s = set_maxwidth(s, width)
     s = set_minwidth(s, width)
+    return s
+def set_height(s:str,height:int) -> str:
+    s = set_maxheight(s, height)
+    s = set_minheight(s, height)
     return s
 
 def horizontal_position_to_index(s:str,x:int):
