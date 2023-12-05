@@ -28,14 +28,14 @@ class ViewLayout(Component):
         self.focus[0] = (self.focus[0] + dx) % row_columns
         self.focus[1] = (self.focus[1] + dy) % len(self.structure)
         self.get_focused_component().onfocus()
-        debug.debug_log += f"Moved focus to {self.focus} '{self.get_focused_component().name}'\n"
+        debug.log(f"Moved focus to {self.focus} '{self.get_focused_component().name}'")
     def set_focus(self,x:int,y:int):
         self.get_focused_component().onunfocus()
         row_columns = self.get_row_columns(self.focus[1])
         self.focus[0] = x % row_columns
         self.focus[1] = y % len(self.structure)
         self.get_focused_component().onfocus()
-        debug.debug_log += f"Set focus to {self.focus} '{self.get_focused_component().name}'\n"
+        debug.log(f"Set focus to {self.focus} '{self.get_focused_component().name}'")
     
     def get_focused_component(self) -> Component:
         return self.structure[self.focus[1]][self.focus[0]]
@@ -51,7 +51,7 @@ class ViewLayout(Component):
             self.move_focus(1,0)
         else:
             focused_comp=self.get_focused_component()
-            debug.debug_log += f"{focused_comp.name} got {repr(text)}\n"
+            debug.log(f"{focused_comp.name} got {repr(text)}")
             focused_comp.input(text,self)
     
     def view(self) -> str:

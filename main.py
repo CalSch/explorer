@@ -9,8 +9,8 @@ import select
 import debug
 
 stdin_fd = sys.stdin.fileno()
-# print(f"stdin: {stdin_fd}")
-# quit(0)
+
+
 try:
     old_term_settings = termios.tcgetattr(stdin_fd)
 except:
@@ -26,13 +26,11 @@ def getchar(timeout:float=0.01):
     #Returns a single character from standard input
     try:
         tty.setraw(stdin_fd,when=termios.TCSANOW)
-        # ch = sys.stdin.read(1)
+
         i, o, e = select.select( [sys.stdin], [], [], timeout)
-        # print(i)
+
         if i:
             ch = (sys.stdin.buffer.raw.read(1)).decode('utf-8')
-            # print(repr(ch))
-            # time.sleep(0.5)
         else:
             return None
     finally:
@@ -80,6 +78,26 @@ layout = view_layout.ViewLayout([
     [ files, pager ]
 ],10,10)
 
+
+@files.set_onsubmit
+def submit(self):
+    global path,files,pager
+    file = files.get_selected_file()
+    if file != None:
+        if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
+            path = os.path.abspath( os.path.join( path, file.get_name() ) )
+            update_files()
+            if file.get_name() == "..": # if going up, then select the previous folder
+                new_files=files.table.get_field("name")
+                try:
+                    index = new_files.index( os.path.basename(os.path.dirname(file.path)) )
+                except ValueError:
+                    index = 1
+                files.table.selected = index
+        elif os.path.isfile(os.path.realpath(file.path)):
+            pager.show=True
+            pager.load_from_file(file)
+
 running = True
 
 if args.once:
@@ -89,7 +107,7 @@ def update_files():
     files.set_dir(path)
 
 def update():
-    debug_pager.text=debug.debug_log
+    debug_pager.text=debug.debug_text
     try:
         term_size = os.get_terminal_size()
         layout.width = term_size.columns-2
@@ -122,14 +140,8 @@ def view():
     s += f"{files.table.width}x{files.table.height}"
     s += "\n\n"
     
-    # if show_pager:
-    #     # s += pager.view()
-    #     s += su.join_horizontal(files.view(),pager.view(),padding_char="|")
-    # else:
-    #     s += files.view()
     s += layout.view()
 
-    # s+=f"\n\n{files.selected} {files.scroll} {files.height}"
     if debug.debug_mode:
         x=layout.width-debug_pager.width-1
         s += "\x1b[s" # save cursor position
@@ -141,42 +153,11 @@ def view():
 
 def handle_input(char):
     global running,path,show_pager,pager_focused
-    # f=open('char','a')
-    # f.write(str(char))
-    # f.close()
-    debug.debug_log += f"{repr(char)}\n"
+    
+    debug.log(f"Input char {repr(char)}")
     if char=="\x03": #Ctrl-C
         running=False
 
-    # elif char=="\x1b[1;5A": # ctrl+up arrow
-    #     layout.move_focus(0,1)
-    # elif char=="\x1b[1;5B": # ctrl+down arrow
-    #     layout.move_focus(0,-1)
-    # elif char=="\x1b[1;5D": # ctrl+right arrow
-    #     layout.move_focus(1,0)
-    # elif char=="\x1b[1;5C": # ctrl+left arrow
-    #     layout.move_focus(-1,0)
-
-    elif char in ["\r","\n"]:
-        file = files.get_selected_file()
-        if file != None:
-            show_pager=False
-            if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
-                path = os.path.abspath( os.path.join( path, file.get_name() ) )
-                update_files()
-                if file.get_name() == "..": # if going up, then select the previous folder
-
-                    new_files=files.table.get_field("name")
-                    # print(new_files)
-                    try:
-                        index = new_files.index( os.path.basename(os.path.dirname(file.path)) )
-                    except ValueError:
-                        index = 1
-                    files.table.selected = index
-            elif os.path.isfile(os.path.realpath(file.path)):
-                pager.show=True
-                # pager_focused=True
-                pager.load_from_file(file)
 
     elif char=="d":
         debug.debug_mode = not debug.debug_mode

@@ -69,8 +69,9 @@ class TextPager(component.Component):
         self.lexer=lexer
         if lexer != None:
             self.text=pygments.highlight(self.text,lexer,TerminalFormatter())
-        debug.debug_log += f"Loaded {type(lexer)}\n"
-        debug.debug_log += f"Method {method}\n"
+        # debug.debug_text += f"Loaded {type(lexer)}\n"
+        # debug.debug_text += f"Method {method}\n"
+        debug.log(f"{self.name} loaded {type(lexer)} with method '{method}'")
     
     def load_from_file(self,file: File):
         try:
