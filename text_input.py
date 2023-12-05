@@ -20,7 +20,7 @@ class TextInput(component.Component):
         self.text=""
         self.cursor=0
     
-    def onsubmit(self):
+    def onsubmit(self,_):
         pass
 
     def setonsubmit(self,func:Callable):
