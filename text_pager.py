@@ -84,7 +84,7 @@ class TextPager(component.Component):
         self.scrollbar.height=self.get_text_height()        
         self.scrollbar.total_height=self.get_line_count()   
 
-    def input(self, text: str):
+    def input(self, text: str,layout):
         if text==keys.up:
             self.scroll_y -= 1
         elif text==keys.down:

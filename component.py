@@ -7,7 +7,7 @@ class Component:
         self.focused: bool=False
     
     # Handle input
-    def input(self,text:str):
+    def input(self,text:str,layout):
         pass
 
     def onfocus(self):

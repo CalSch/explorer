@@ -29,7 +29,7 @@ class TextInput(component.Component):
     def updateCursor(self):
         self.cursor = max(0,min(len(self.text),self.cursor))
 
-    def input(self, text: str):
+    def input(self, text: str,layout):
         if text == keys.left:
             self.cursor -= 1
         elif text == keys.right:
@@ -41,7 +41,7 @@ class TextInput(component.Component):
         elif text == keys.delete:
             if self.cursor!=len(self.text):
                 self.text=self.text[:self.cursor] + self.text[self.cursor+1:] # remove the character at `self.cursor-1`
-        elif text == keys.enter or text == keys.cr:
+        elif text == keys.enter:
             self.onsubmit(self)
         elif text in [keys.up,keys.down]:
             pass
@@ -73,8 +73,8 @@ class TextInput(component.Component):
         # else:
         #     s += colors.dim.on + self.placeholder + colors.dim.off
         s += " "
-        if self.text:
-            s += f"\n{repr(self.text)}"
+        # if self.text:
+        #     s += f"\n{repr(self.text)}"
         
         if self.use_border:
             s = su.border(s,su.round_border)

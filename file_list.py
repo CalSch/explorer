@@ -4,6 +4,8 @@ import table
 import component
 import keys
 import time
+import text_input
+import view_layout
 
 def format_size(num, suffix="B"):
     for unit in (" ", "K", "M", "G", "T", "P", "E", "Z"):
@@ -139,6 +141,10 @@ class FileList(component.Component):
             show_title = False,
         )
         self.set_dir(dir)
+
+        self.search_input=text_input.TextInput(100,1,"Find: ",placeholder=" ",name="Search bar",use_border=False)
+        self.search_input.show=False
+
         @self.table.set_filter
         def _(row: table.TableRow):
             name=string_util.strip_ansi(row.data["name"])
@@ -229,7 +235,7 @@ class FileList(component.Component):
                 links.append(file)
         return links
     
-    def input(self, text: str):
+    def input(self, text: str, layout: view_layout.ViewLayout):
         if text==keys.up:
             self.selected -= 1
         elif text==keys.down:
@@ -238,6 +244,15 @@ class FileList(component.Component):
             self.selected -= self.height
         elif text==keys.page_down:
             self.selected += self.height
+        elif text==keys.home:
+            self.selected=0
+        elif text==keys.end:
+            self.selected=len(self.table.disp_rows)
+        elif text==keys.find:
+            if not self.search_input.show:
+                self.search_input.show=True
+                layout.structure.append([self.search_input])
+                layout.set_focus(0,-1)
         elif text==keys.enter:
             self.onsubmit(self)
         self.table.update_view()
