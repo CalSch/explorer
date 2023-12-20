@@ -32,19 +32,20 @@ def get_file_lexer(mime,name,text):
 
 class TextPager(component.Component):
     def __init__(self,
+            parent:component.Component,
             width=80,
             height=30,
             title:str="",
-            name:str="TextPager"
+            name:str="TextPager",
     ):
-        super().__init__(width,height,name)
+        super().__init__(width,height,name, parent)
         self.text="hello!\n"
         self.title=title
         self.scroll_x=0
         self.scroll_y=0
         self.border_style: su.BorderStyle = su.normal_border
         self.onunfocus()
-        self.scrollbar = scrollbar.Scrollbar(1, self.get_text_height(), self.get_text_height(), 0, self.get_line_count())
+        self.scrollbar = scrollbar.Scrollbar(self,1, self.get_text_height(), self.get_text_height(), 0, self.get_line_count())
         # self.update_highlight()
 
     def get_line_count(self) -> int:
@@ -85,7 +86,7 @@ class TextPager(component.Component):
         self.scrollbar.height=self.get_text_height()        
         self.scrollbar.total_height=self.get_line_count()   
 
-    def input(self, text: str,layout):
+    def input(self, text: str):
         if text==keys.up:
             self.scroll_y -= 1
         elif text==keys.down:

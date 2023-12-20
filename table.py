@@ -31,6 +31,7 @@ class TableRow:
 
 class Table(component.Component):
     def __init__(self,
+                 parent: component.Component,
                  title: str,
                  height: int,
                  width: int,
@@ -42,7 +43,7 @@ class Table(component.Component):
                  show_title: bool = True,
                  name:str="Table"
         ):
-        super().__init__(width,height,name)
+        super().__init__(width,height,name,parent)
         self.title=title
         self.columns=columns
         self.column_order=column_order
@@ -55,7 +56,7 @@ class Table(component.Component):
         self.show_title=show_title
         self.filter=lambda s : True
         self.disp_rows: list[TableRow]=[]
-        self.scrollbar = scrollbar.Scrollbar( 1, self.height, 0, 0, 0 )
+        self.scrollbar = scrollbar.Scrollbar(self, 1, self.height, 0, 0, 0 )
         self.update_scrollbar()
     
     def add_row(self, data: dict[str,str], dont_recalc_sizes: bool = False):
@@ -145,7 +146,7 @@ class Table(component.Component):
         s += "-" * self.width
         s += "\n"
         if self.scroll>0:
-            s += "... "
+            s += "..."
         s += "\n"
         i = 0
         for row in self.disp_rows:
@@ -167,8 +168,7 @@ class Table(component.Component):
 
             i += 1
         if self.scroll+self.get_shown_rows() < len(self.disp_rows)-1:
-            s += "... "
-        s += "\n"
+            s += "..."
         s = su.set_width(s, self.width - 2)
         # s = su.set_minwidth(s, self.width - 2)
         if show_scrollbar:

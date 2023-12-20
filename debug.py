@@ -6,7 +6,8 @@ debug_text=""
 debug_mode=False
 logfile="debug.txt"
 def log(text:str):
-    debug_log += text+"\n"
+    global debug_text
+    debug_text += text+"\n"
     with open(logfile,'w') as f:
-        f.write(debug_log)
+        f.write(debug_text)
 # debug_log=""

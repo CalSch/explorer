@@ -7,6 +7,8 @@ import colors
 import view_layout
 import select
 import debug
+import text_input
+import table
 
 stdin_fd = sys.stdin.fileno()
 
@@ -61,27 +63,45 @@ parser.add_argument('-p', '--profile', action='store_true')
 args = parser.parse_args()
 
 path = args.dir
-files = file_list.FileList(path)
-pager = text_pager.TextPager()
-pager.show = False
-show_pager = False
-pager_focused = False
+
+layout = view_layout.ViewLayout(None,[],10,10)
+
+files = file_list.FileList(layout, path)
+pager = text_pager.TextPager(layout, height=50)
+search_bar = text_input.TextInput(layout,100,1,"Find: ",placeholder=" ",name="Search bar",use_border=False)
+search_bar.hide()
+
+@search_bar.set_ontype
+def ontype(self: text_input.TextInput):
+    @files.table.set_filter
+    def filter(row: table.TableRow):
+        name=su.strip_ansi(row.data["name"])
+        return self.text in name
+
+@search_bar.set_onsubmit
+def onsubmit(self: text_input.TextInput):
+    layout.set_focus_by_name("FileList")
+    self.hide()
+
+layout.structure = [
+    [files,pager],
+    [search_bar]
+]
+
+pager.visible = False
 
 if args.profile:
     import functiontrace
     functiontrace.trace()
 
-debug_pager = text_pager.TextPager(80,15,"Debug Log","DebugPager")
+debug_pager = text_pager.TextPager(None,100,15,"Debug Log","DebugPager")
 debug_pager.onfocus()
-
-layout = view_layout.ViewLayout([
-    [ files, pager ]
-],10,10)
 
 
 @files.set_onsubmit
 def submit(self):
     global path,files,pager
+    debug.log(f"Changing directory!")
     file = files.get_selected_file()
     if file != None:
         if os.path.isdir(os.path.realpath(file.path)): # use os.path.realpath to follow symlinks
@@ -95,7 +115,7 @@ def submit(self):
                     index = 1
                 files.table.selected = index
         elif os.path.isfile(os.path.realpath(file.path)):
-            pager.show=True
+            pager.visible=True
             pager.load_from_file(file)
 
 running = True
@@ -112,11 +132,13 @@ def update():
         term_size = os.get_terminal_size()
         layout.width = term_size.columns-2
         layout.height = term_size.lines-1
-        files.height = term_size.lines - 15
-        if pager.show:
+        files.height = layout.height - 10
+        search_bar.width=layout.width
+        if pager.visible:
             files.width = int(term_size.columns/2 - 1)
+            pager.height = files.height
         else:
-            files.width = term_size.columns - 1
+            files.width = term_size.columns
         pager.width = int(term_size.columns/2 - 2)
     except OSError:
         # term_size = os.terminal_size([],{})

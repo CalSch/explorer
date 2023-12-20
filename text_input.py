@@ -6,6 +6,7 @@ from typing import Callable
 
 class TextInput(component.Component):
     def __init__(self,
+                 parent: component.Component,
                  width: int,
                  height: int,
                  prompt: str="",
@@ -13,7 +14,7 @@ class TextInput(component.Component):
                  name: str="TextInput",
                  use_border: bool=False
                 ):
-        super().__init__(width, height, name)
+        super().__init__(width, height, name, parent)
         self.use_border=use_border
         self.prompt=prompt
         self.placeholder=placeholder
@@ -22,14 +23,18 @@ class TextInput(component.Component):
     
     def onsubmit(self,_):
         pass
-
-    def setonsubmit(self,func:Callable):
+    def set_onsubmit(self,func:Callable):
         self.onsubmit=func
+
+    def ontype(self,_):
+        pass
+    def set_ontype(self,func:Callable):
+        self.ontype=func
 
     def updateCursor(self):
         self.cursor = max(0,min(len(self.text),self.cursor))
 
-    def input(self, text: str,layout):
+    def input(self, text: str):
         if text == keys.left:
             self.cursor -= 1
         elif text == keys.right:
@@ -38,9 +43,11 @@ class TextInput(component.Component):
             if self.cursor!=0:
                 self.text=self.text[:self.cursor-1] + self.text[self.cursor:] # remove the character at `self.cursor-1`
                 self.cursor -= 1
+            self.ontype(self)
         elif text == keys.delete:
             if self.cursor!=len(self.text):
                 self.text=self.text[:self.cursor] + self.text[self.cursor+1:] # remove the character at `self.cursor-1`
+            self.ontype(self)
         elif text == keys.enter:
             self.onsubmit(self)
         elif text in [keys.up,keys.down]:
@@ -48,6 +55,7 @@ class TextInput(component.Component):
         else:
             self.text = self.text[:self.cursor] + text + self.text[self.cursor:] # insert the character into `self.cursor`
             self.cursor += len(text)
+            self.ontype(self)
         self.updateCursor()
     
     def view(self) -> str:

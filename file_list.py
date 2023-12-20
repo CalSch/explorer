@@ -1,4 +1,5 @@
-import os,stat,subprocess,string_util
+import os,stat,subprocess
+import string_util as su
 import colors
 import table
 import component
@@ -6,6 +7,7 @@ import keys
 import time
 import text_input
 import view_layout
+import debug
 
 def format_size(num, suffix="B"):
     for unit in (" ", "K", "M", "G", "T", "P", "E", "Z"):
@@ -115,26 +117,33 @@ class File:
         }
 
 class FileList(component.Component):
-    def __init__(self,dir:str,width:int=120,height:int=15,name:str="FileList"):
-        super().__init__(width,height,name)
+    def __init__(self,
+            parent: component.Component,
+            dir:str,
+            width:int=120,
+            height:int=15,
+            name:str="FileList"
+        ):
+        super().__init__(width,height,name,parent)
         self.dir = dir
         self.files: list[File]=[]
         self.selected = 0
         self.scroll = 0
 
         self.table = table.Table(
+            parent= self,
             title = self.dir,
             width = self.width,
             height = self.height,
             columns = ["path","name","size","perms","info","mime"],
             column_order = ["perms","name","size","info"],
             column_justifies = {
-                "path": string_util.TextJustify.Left,
-                "name": string_util.TextJustify.Left,
-                "size": string_util.TextJustify.Right,
-                "perms": string_util.TextJustify.Left,
-                "info": string_util.TextJustify.Left,
-                "mime": string_util.TextJustify.Left,
+                "path": su.TextJustify.Left,
+                "name": su.TextJustify.Left,
+                "size": su.TextJustify.Right,
+                "perms": su.TextJustify.Left,
+                "info": su.TextJustify.Left,
+                "mime": su.TextJustify.Left,
             },
             column_separator = "  ",
             scroll = self.scroll,
@@ -142,12 +151,11 @@ class FileList(component.Component):
         )
         self.set_dir(dir)
 
-        self.search_input=text_input.TextInput(100,1,"Find: ",placeholder=" ",name="Search bar",use_border=False)
-        self.search_input.show=False
+        self.border_style: su.BorderStyle = su.normal_border
 
         @self.table.set_filter
         def _(row: table.TableRow):
-            name=string_util.strip_ansi(row.data["name"])
+            name=su.strip_ansi(row.data["name"])
             # return name.startswith("t")
             return True
     
@@ -235,7 +243,16 @@ class FileList(component.Component):
                 links.append(file)
         return links
     
-    def input(self, text: str, layout: view_layout.ViewLayout):
+
+    def onfocus(self):
+        self.border_style = su.normal_border
+        self.border_style.color = colors.fg.default
+    
+    def onunfocus(self):
+        self.border_style = su.dashed_border
+        self.border_style.color = colors.dim.on
+    
+    def input(self, text: str):
         if text==keys.up:
             self.selected -= 1
         elif text==keys.down:
@@ -249,10 +266,13 @@ class FileList(component.Component):
         elif text==keys.end:
             self.selected=len(self.table.disp_rows)
         elif text==keys.find:
-            if not self.search_input.show:
-                self.search_input.show=True
-                layout.structure.append([self.search_input])
-                layout.set_focus(0,-1)
+            debug.log("Finding!")
+            layout: view_layout.ViewLayout = self.get_layout()
+            search_input: text_input.TextInput = layout.get_child_by_name("Search bar")
+            if search_input != None:
+                if not search_input.visible:
+                    search_input.show()
+                    layout.set_focus_by_name("Search bar")
         elif text==keys.enter:
             self.onsubmit(self)
         self.table.update_view()
@@ -262,8 +282,8 @@ class FileList(component.Component):
 
         self.table.scroll = self.scroll
         self.table.selected = self.selected
-        self.table.width = self.width
-        self.table.height = self.height
+        self.table.width = self.width-2
+        self.table.height = self.height-2
         self.table.calc_column_sizes()
         self.table.update_view()
         self.selected=self.table.selected
@@ -273,13 +293,14 @@ class FileList(component.Component):
 
 
         # debug stuff
-        s += "\n"
-        s += f"selected={self.table.selected}"
-        s += f" scroll={self.table.scroll}"
-        s += f" height={self.table.height}"
-        s += f" width={self.width}"
-        s += f" rows={len(self.table.rows)}"
+        # s += "\n"
+        # s += f"selected={self.table.selected}"
+        # s += f" scroll={self.table.scroll}"
+        # s += f" height={self.height}"
+        # s += f" width={self.width}"
+        # s += f" rows={len(self.table.rows)}"
         
-        return s
+        return su.border(s,self.border_style)
+        # return s
 
             

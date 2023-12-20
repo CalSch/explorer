@@ -6,19 +6,21 @@ import keys
 
 class ViewLayout(Component):
     def __init__(self,
+            parent: Component,
             structure:list[list[Component]],
             width:int,
             height:int,
             name:str="ViewLayout",
     ):
-        super().__init__(width,height,name)
+        super().__init__(width,height,name,parent)
         self.structure=structure
         self.focus=[0,0]
+        self.is_view_layout = True
     
     def get_row_columns(self,row:int) -> int:
         i = 0
         for comp in self.structure[row]:
-            if comp.show:
+            if comp.visible:
                 i += 1
         return i
 
@@ -37,8 +39,28 @@ class ViewLayout(Component):
         self.get_focused_component().onfocus()
         debug.log(f"Set focus to {self.focus} '{self.get_focused_component().name}'")
     
+    def set_focus_by_name(self,name:str):
+        y=0
+        for row in self.structure:
+            x=0
+            for comp in row:
+                if comp.name == name:
+                    self.set_focus(x,y)
+                x+=1
+            y+=1
+
     def get_focused_component(self) -> Component:
         return self.structure[self.focus[1]][self.focus[0]]
+
+    def get_child_by_name(self,name) -> Component:
+        names=[]
+        for row in self.structure:
+            for comp in row:
+                names.append(comp.name)
+                if comp.name == name:
+                    return comp
+        debug.log(f"Search for '{name}' failed, options were {names}")
+        return None
     
     def input(self,text:str):
         if text==keys.ctrl_up:
@@ -52,14 +74,14 @@ class ViewLayout(Component):
         else:
             focused_comp=self.get_focused_component()
             debug.log(f"{focused_comp.name} got {repr(text)}")
-            focused_comp.input(text,self)
+            focused_comp.input(text)
     
     def view(self) -> str:
         s = ""
         for row in self.structure:
             row_str = ""
             for comp in row:
-                if not comp.show:
+                if not comp.visible:
                     continue
     
                 row_str = su.join_horizontal(

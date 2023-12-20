@@ -57,7 +57,7 @@ ti = text_input.TextInput(
 
 ti.onfocus()
 
-@ti.setonsubmit
+@ti.set_onsubmit
 def onsubmit(self:text_input.TextInput):
     global running
     running=False

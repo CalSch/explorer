@@ -187,7 +187,7 @@ def border(text:str,style:BorderStyle) -> str:
 
     for line in lines:
         s += style.color
-        s += style.left + colors.reset + ljust(line,width) + style.color + style.right
+        s += style.left + colors.reset + ljust(line,width) + colors.reset + style.color + style.right
         s += colors.reset
         s += "\n"
     

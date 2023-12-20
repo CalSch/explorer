@@ -3,8 +3,8 @@ import colors
 import math
 
 class Scrollbar(component.Component):
-    def __init__(self, width:int, height: int, view_height:int, view_scroll: int, total_hight: int, name: str="Scrollbar"):
-        super().__init__(width, height, name)
+    def __init__(self, parent: component.Component, width:int, height: int, view_height:int, view_scroll: int, total_hight: int, name: str="Scrollbar"):
+        super().__init__(width, height, name, parent)
         self.view_height=view_height
         self.view_scroll=view_scroll
         self.total_height=total_hight
@@ -19,4 +19,4 @@ class Scrollbar(component.Component):
             s += " "*self.width
             s += colors.reset
             s += "\n"
-        return s
+        return s.removesuffix("\n")
